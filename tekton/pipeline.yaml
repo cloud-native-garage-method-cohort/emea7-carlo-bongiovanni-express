@@ -1,0 +1,32 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-push-express
+spec:
+  tasks:
+  - name: git-clone
+    params:
+    - name: url
+      value: https://github.com/cloud-native-garage-method-cohort/emea7-carlo-bongiovanni-express.git
+    taskRef:
+      name: git-clone
+      kind: ClusterTask
+    workspaces:
+    - name: output
+      workspace: pipeline-shared-data
+  - name: buildah-image
+    taskRef:
+      name: buildah
+      Kind: ClusterTask
+    runAfter:
+      - git-clone
+    workspaces:
+    - name: source
+      workspace: pipeline-shared-data
+
+    params:
+    - name: IMAGE
+      value: quay.io/cbongiovanni81/express-app:$(tasks.git-clone.results.commit)
+
+  workspaces:
+  - name: pipeline-shared-data
